@@ -1,158 +1,99 @@
 import 'dart:io';
+import 'database/database.dart';
 import 'models/Appointment Scheduling/appointment.dart';
 
 void main() {
-  List<Appointment> appointments = [];
+  Database.loadAppointments();
 
   while (true) {
     print("\n========== Appointment Scheduling System ==========");
     print("1. Schedule Appointment");
     print("2. Cancel Appointment");
     print("3. Update Appointment");
-    print("4. Send Reminder");
-    print("5. Reschedule Appointment");
-    print("6. Exit");
+    print("4. Exit");
     stdout.write("Enter your choice: ");
 
     String? choice = stdin.readLineSync();
 
     switch (choice) {
       case '1':
-        stdout.write("Enter Patient ID: ");
-        String? patientId = stdin.readLineSync();
-        stdout.write("Enter Doctor ID: ");
-        String? doctorId = stdin.readLineSync();
-        stdout.write("Enter Appointment Date (YYYY-MM-DD): ");
-        String? dateInput = stdin.readLineSync();
-        stdout.write("Enter Appointment Time (HH:MM): ");
-        String? timeInput = stdin.readLineSync();
-
-        if (patientId != null &&
-            doctorId != null &&
-            dateInput != null &&
-            timeInput != null) {
-          DateTime appointmentDate = DateTime.parse(dateInput);
-          String appointmentId =
-              DateTime.now().millisecondsSinceEpoch.toString();
-
-          Appointment newAppointment = Appointment(
-            appointmentId: appointmentId,
-            patientId: patientId,
-            doctorId: doctorId,
-            appointmentDate: appointmentDate,
-            appointmentTime: timeInput,
-            status: "Pending",
-            notes: "",
-            reminderSent: false,
-          );
-
-          appointments.add(newAppointment);
-          newAppointment.scheduleAppointment();
-        }
+        scheduleAppointment();
         break;
-
       case '2':
-        stdout.write("Enter Appointment ID to cancel: ");
-        String? id = stdin.readLineSync();
-        var appointment = appointments.firstWhere((a) => a.appointmentId == id,
-            orElse: () => Appointment(
-                appointmentId: "",
-                patientId: "",
-                doctorId: "",
-                appointmentDate: DateTime.now(),
-                appointmentTime: "",
-                status: "",
-                notes: "",
-                reminderSent: false));
-
-        if (appointment.appointmentId.isNotEmpty) {
-          appointment.cancelAppointment();
-        } else {
-          print("Appointment not found.");
-        }
+        cancelAppointment();
         break;
-
       case '3':
-        stdout.write("Enter Appointment ID to update: ");
-        String? id = stdin.readLineSync();
-        var appointment = appointments.firstWhere((a) => a.appointmentId == id,
-            orElse: () => Appointment(
-                appointmentId: "",
-                patientId: "",
-                doctorId: "",
-                appointmentDate: DateTime.now(),
-                appointmentTime: "",
-                status: "",
-                notes: "",
-                reminderSent: false));
-
-        if (appointment.appointmentId.isNotEmpty) {
-          stdout.write("Enter New Date (YYYY-MM-DD): ");
-          String? newDate = stdin.readLineSync();
-          stdout.write("Enter New Time (HH:MM): ");
-          String? newTime = stdin.readLineSync();
-          if (newDate != null && newTime != null) {
-            appointment.updateAppointment(DateTime.parse(newDate), newTime);
-          }
-        } else {
-          print("Appointment not found.");
-        }
+        updateAppointment();
         break;
-
       case '4':
-        stdout.write("Enter Appointment ID to send reminder: ");
-        String? id = stdin.readLineSync();
-        var appointment = appointments.firstWhere((a) => a.appointmentId == id,
-            orElse: () => Appointment(
-                appointmentId: "",
-                patientId: "",
-                doctorId: "",
-                appointmentDate: DateTime.now(),
-                appointmentTime: "",
-                status: "",
-                notes: "",
-                reminderSent: false));
-
-        if (appointment.appointmentId.isNotEmpty) {
-          appointment.sendReminder();
-        } else {
-          print("Appointment not found.");
-        }
-        break;
-
-      case '5':
-        stdout.write("Enter Appointment ID to reschedule: ");
-        String? id = stdin.readLineSync();
-        var appointment = appointments.firstWhere((a) => a.appointmentId == id,
-            orElse: () => Appointment(
-                appointmentId: "",
-                patientId: "",
-                doctorId: "",
-                appointmentDate: DateTime.now(),
-                appointmentTime: "",
-                status: "",
-                notes: "",
-                reminderSent: false));
-
-        if (appointment.appointmentId.isNotEmpty) {
-          stdout.write("Enter New Date (YYYY-MM-DD): ");
-          String? newDate = stdin.readLineSync();
-          stdout.write("Enter New Time (HH:MM): ");
-          String? newTime = stdin.readLineSync();
-          if (newDate != null && newTime != null) {
-            appointment.rescheduleAppointment(DateTime.parse(newDate), newTime);
-          }
-        } else {
-          print("Appointment not found.");
-        }
-        break;
-
-      case '6':
-        print("Exiting the system...");
+        print("Exiting...");
         return;
-
       default:
-        print("Invalid choice! Please enter a valid option.");
+        print("Invalid choice! Try again.");
     }
+  }
+}
+
+void scheduleAppointment() {
+  stdout.write("Enter Patient ID: ");
+  String patientId = stdin.readLineSync()!;
+
+  stdout.write("Enter Doctor ID: ");
+  String doctorId = stdin.readLineSync()!;
+
+  stdout.write("Enter Appointment Date (YYYY-MM-DD): ");
+  DateTime appointmentDate = DateTime.parse(stdin.readLineSync()!);
+
+  stdout.write("Enter Appointment Time (HH:MM): ");
+  String appointmentTime = stdin.readLineSync()!;
+
+  String appointmentId = DateTime.now().millisecondsSinceEpoch.toString();
+
+  Appointment newAppointment = Appointment(
+    appointmentId: appointmentId,
+    patientId: patientId,
+    doctorId: doctorId,
+    appointmentDate: appointmentDate,
+    appointmentTime: appointmentTime,
+    status: "Pending",
+    notes: "",
+    reminderSent: false,
+  );
+
+  Appointment.appointments.add(newAppointment);
+  print("New Appointment Added: ${newAppointment.toJson()}");
+  newAppointment.scheduleAppointment();
+  Database.saveAppointments();
+}
+
+void cancelAppointment() {
+  stdout.write("Enter Appointment ID to cancel: ");
+  String id = stdin.readLineSync()!;
+  Appointment? appointment = Appointment.getAppointmentById(id);
+
+  if (appointment != null) {
+    appointment.cancelAppointment();
+    Database.saveAppointments();
+  } else {
+    print("Appointment not found.");
+  }
+}
+
+void updateAppointment() {
+  stdout.write("Enter Appointment ID to update: ");
+  String id = stdin.readLineSync()!;
+  Appointment? appointment = Appointment.getAppointmentById(id);
+
+  if (appointment != null) {
+    stdout.write("Enter New Date (YYYY-MM-DD): ");
+    DateTime newDate = DateTime.parse(stdin.readLineSync()!);
+
+    stdout.write("Enter New Time (HH:MM): ");
+    String newTime = stdin.readLineSync()!;
+
+    appointment.updateAppointment(newDate, newTime);
+    Database.saveAppointments();
+  } else {
+    print("Appointment not found.");
   }
 }

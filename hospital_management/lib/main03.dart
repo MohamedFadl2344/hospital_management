@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'models/Doctor Management/doctor.dart';
+import 'database/database.dart';
 
 void main() {
+  Database.loadDoctors();
+
   while (true) {
     print("\n==========================================");
     print("Doctor Management System");
@@ -63,6 +66,7 @@ void main() {
         );
 
         newDoctor.addDoctor();
+        Database.saveDoctors();
         break;
 
       case '2':
@@ -94,12 +98,14 @@ void main() {
         if (newContactInfo.isNotEmpty) updatedData['contactInfo'] = newContactInfo;
 
         Doctor.updateDoctorInfo(doctorIdToUpdate, updatedData);
+        Database.saveDoctors();
         break;
 
       case '5':
         stdout.write("Enter Doctor ID to Delete: ");
         String doctorIdToDelete = stdin.readLineSync()!;
         Doctor.removeDoctor(doctorIdToDelete);
+        Database.saveDoctors();
         break;
 
       case '6':

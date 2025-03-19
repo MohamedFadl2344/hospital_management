@@ -1,68 +1,44 @@
-class Patient {
-  int? id;
-  String? name, contactInfo, gender, address, bloodType;
-  List<String>? medicalHistory;
-  List<String>? allergies;
+import '../../database/database.dart';
 
-  // List to store all patients
+class Patient {
+  int id;
+  String name, contactInfo, gender, address, bloodType;
+  List<String> medicalHistory;
+  List<String> allergies;
+
   static List<Patient> patients = [];
 
-  // Constructor to create a new patient
   Patient({
-    this.id,
-    this.name,
-    this.contactInfo,
-    this.gender,
-    this.address,
-    this.bloodType,
-    this.medicalHistory,
-    this.allergies,
-  });
+    required this.id,
+    required this.name,
+    required this.contactInfo,
+    required this.gender,
+    required this.address,
+    required this.bloodType,
+    List<String>? medicalHistory,
+    List<String>? allergies,
+  })  : medicalHistory = medicalHistory ?? [],
+        allergies = allergies ?? [];
 
-  // Add patient details
-  void addPatient({
-    required int id,
-    required String name,
-    required String contactInfo,
-    required String gender,
-    required String address,
-    required String bloodType,
-  }) {
-    this.id = id;
-    this.name = name;
-    this.contactInfo = contactInfo;
-    this.gender = gender;
-    this.address = address;
-    this.bloodType = bloodType;
-    this.medicalHistory = [];
-    this.allergies = [];
-    patients.add(this); // Add to the static list
+  static void addPatient(Patient patient) {
+    patients.add(patient);
+    Database.savePatients();
   }
 
-  // Remove only medical history
-  void removeHistory() {
-    this.medicalHistory = [];
+  void clearMedicalHistory() {
+    medicalHistory.clear();
+    Database.savePatients();
   }
 
-  // Add to medical history
   void addMedicalRecord(String record) {
-    medicalHistory ??= [];
-    medicalHistory!.add(record);
+    medicalHistory.add(record);
+    Database.savePatients();
   }
 
-  // Display patient info
   void displayInfo() {
-    print("ID: $id");
-    print("Name: $name");
-    print("Contact: $contactInfo");
-    print("Gender: $gender");
-    print("Address: $address");
-    print("Blood Type: $bloodType");
-    print("Medical History: $medicalHistory");
-    print("Allergies: $allergies");
+    print("ID: $id\nName: $name\nContact: $contactInfo\nGender: $gender\nAddress: $address\nBlood Type: $bloodType\nMedical History: $medicalHistory\nAllergies: $allergies");
   }
 
-  // Get all patients
   static void getAllPatients() {
     for (var patient in patients) {
       patient.displayInfo();
@@ -70,12 +46,14 @@ class Patient {
     }
   }
 
-  // Get patient by ID
   static Patient? getPatientById(int id) {
-    return patients.firstWhere((patient) => patient.id == id, orElse: () => Patient());
-  }
+  return patients.firstWhere(
+    (patient) => patient.id == id,
+    orElse: () => throw Exception('Patient not found'),
+  );
+}
 
-  // Update patient info
+
   void updatePatient({
     String? name,
     String? contactInfo,
@@ -88,19 +66,18 @@ class Patient {
     if (gender != null) this.gender = gender;
     if (address != null) this.address = address;
     if (bloodType != null) this.bloodType = bloodType;
+    Database.savePatients();
   }
 
-  // Delete patient
   static void deletePatient(int id) {
     patients.removeWhere((patient) => patient.id == id);
+    Database.savePatients();
   }
 
-  // Search patients by name
   static List<Patient> searchPatientsByName(String name) {
-    return patients.where((patient) => patient.name!.toLowerCase().contains(name.toLowerCase())).toList();
+    return patients.where((patient) => patient.name.toLowerCase().contains(name.toLowerCase())).toList();
   }
 
-  // Filter patients by age (Assuming age is calculated elsewhere)
   static List<Patient> filterPatientsByAge(int minAge, int maxAge, Map<int, int> patientAges) {
     return patients.where((patient) {
       int? age = patientAges[patient.id];
@@ -108,8 +85,33 @@ class Patient {
     }).toList();
   }
 
-  // Get contact info
-  String? getContactInfo() {
+  String getContactInfo() {
     return contactInfo;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'contactInfo': contactInfo,
+      'gender': gender,
+      'address': address,
+      'bloodType': bloodType,
+      'medicalHistory': medicalHistory,
+      'allergies': allergies,
+    };
+  }
+
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      id: json['id'],
+      name: json['name'],
+      contactInfo: json['contactInfo'],
+      gender: json['gender'],
+      address: json['address'],
+      bloodType: json['bloodType'],
+      medicalHistory: List<String>.from(json['medicalHistory'] ?? []),
+      allergies: List<String>.from(json['allergies'] ?? []),
+    );
   }
 }

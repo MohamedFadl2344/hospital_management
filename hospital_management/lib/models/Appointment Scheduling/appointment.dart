@@ -1,4 +1,8 @@
+import '../../database/database.dart';
+
 class Appointment {
+  static List<Appointment> appointments = [];
+
   String appointmentId;
   String patientId;
   String doctorId;
@@ -19,61 +23,71 @@ class Appointment {
     required this.reminderSent,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'appointmentId': appointmentId,
+      'patientId': patientId,
+      'doctorId': doctorId,
+      'appointmentDate': appointmentDate.toIso8601String(),
+      'appointmentTime': appointmentTime,
+      'status': status,
+      'notes': notes,
+      'reminderSent': reminderSent,
+    };
+  }
+
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    return Appointment(
+      appointmentId: json['appointmentId'],
+      patientId: json['patientId'],
+      doctorId: json['doctorId'],
+      appointmentDate: DateTime.parse(json['appointmentDate']),
+      appointmentTime: json['appointmentTime'],
+      status: json['status'],
+      notes: json['notes'],
+      reminderSent: json['reminderSent'],
+    );
+  }
+
+ static Appointment? getAppointmentById(String id) {
+  try {
+    return appointments.firstWhere((a) => a.appointmentId == id);
+  } catch (e) {
+    return null;
+  }
+}
+
+
   void scheduleAppointment() {
-    // Scheduling logic
     if (status == 'Scheduled') {
-      print('Appointment is already scheduled for $patientId on $appointmentDate at $appointmentTime');
+      print('Appointment is already scheduled.');
       return;
     }
-    if (status == 'Pending') {
-      status = 'Scheduled';
-      reminderSent = true;
-      print('Appointment successfully scheduled.');
-    } else {
-      print("Cannot schedule appointment, current status: $status.");
-    }
+    status = 'Scheduled';
+    reminderSent = true;
+    Database.saveAppointments();
+    print('Appointment successfully scheduled.');
   }
 
   void cancelAppointment() {
-    // Cancellation logic
     if (status != 'Scheduled') {
       print('Cannot cancel appointment, current status: $status.');
       return;
     }
     status = 'Cancelled';
     reminderSent = false;
+    Database.saveAppointments();
     print('The appointment was cancelled successfully!');
   }
 
   void updateAppointment(DateTime newDate, String newTime) {
-    // Update logic
     if (status != 'Scheduled') {
       print('Cannot update appointment, current status: $status.');
       return;
     }
     appointmentDate = newDate;
     appointmentTime = newTime;
+    Database.saveAppointments();
     print('The appointment was updated successfully!');
-  }
-
-  void sendReminder() {
-    // Reminder logic
-    if (reminderSent) {
-      print('Reminder already sent.');
-      return;
-    }
-    print('Sending reminder for appointment.');
-    reminderSent = true;
-  }
-
-  void rescheduleAppointment(DateTime newDate, String newTime) {
-    // Rescheduling logic
-    if (status != 'Scheduled') {
-      print('Cannot reschedule appointment, current status: $status.');
-      return;
-    }
-    appointmentDate = newDate;
-    appointmentTime = newTime;
-    print('The appointment was rescheduled successfully!');
   }
 }

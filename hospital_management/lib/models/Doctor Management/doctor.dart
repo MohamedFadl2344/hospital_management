@@ -1,3 +1,5 @@
+import '../../database/database.dart';
+
 class Doctor {
   String doctorId;
   String name;
@@ -27,32 +29,54 @@ class Doctor {
     required this.bio,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'doctorId': doctorId,
+      'name': name,
+      'specialization': specialization,
+      'contactInfo': contactInfo,
+      'workSchedule': workSchedule,
+      'consultationFee': consultationFee,
+      'availabilityStatus': availabilityStatus,
+      'operationSchedule': operationSchedule,
+      'experienceYears': experienceYears,
+      'ratings': ratings,
+      'bio': bio,
+    };
+  }
+
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    return Doctor(
+      doctorId: json['doctorId'],
+      name: json['name'],
+      specialization: json['specialization'],
+      contactInfo: json['contactInfo'],
+      workSchedule: json['workSchedule'],
+      consultationFee: json['consultationFee'],
+      availabilityStatus: json['availabilityStatus'],
+      operationSchedule: json['operationSchedule'],
+      experienceYears: json['experienceYears'],
+      ratings: List<double>.from(json['ratings'] ?? []),
+      bio: json['bio'],
+    );
+  }
+
   void addDoctor() {
     doctorsList.add(this);
-    print("Doctor ${name} has been added successfully.");
+    Database.saveDoctors();
+    print("Doctor \$name has been added successfully.");
   }
 
   static void removeDoctor(String doctorId) {
     doctorsList.removeWhere((doctor) => doctor.doctorId == doctorId);
-    print("Doctor with ID $doctorId has been removed.");
+    Database.saveDoctors();
+    print("Doctor with ID \$doctorId has been removed.");
   }
 
   static void updateDoctorInfo(String doctorId, Map<String, dynamic> updatedData) {
-    Doctor? doctor = doctorsList.firstWhere((d) => d.doctorId == doctorId, orElse: () => Doctor(
-      doctorId: '',
-      name: '',
-      specialization: '',
-      contactInfo: '',
-      workSchedule: '',
-      consultationFee: 0.0,
-      availabilityStatus: '',
-      operationSchedule: '',
-      experienceYears: 0,
-      ratings: [],
-      bio: '',
-    ));
+    Doctor? doctor = doctorsList.firstWhereOrNull((d) => d.doctorId == doctorId);
 
-    if (doctor.doctorId.isNotEmpty) {
+    if (doctor != null) {
       updatedData.forEach((key, value) {
         switch (key) {
           case 'name':
@@ -84,6 +108,7 @@ class Doctor {
             break;
         }
       });
+      Database.saveDoctors();
       print("Doctor information updated successfully.");
     } else {
       print("Doctor not found.");
@@ -95,19 +120,30 @@ class Doctor {
       print("No doctors available.");
       return;
     }
-    for (var doctor in doctorsList) {
+    doctorsList.forEach((doctor) {
       print("Doctor ID: ${doctor.doctorId}, Name: ${doctor.name}, Specialization: ${doctor.specialization}");
-    }
+    });
   }
 
   static void searchDoctorByName(String name) {
-    List<Doctor> foundDoctors = doctorsList.where((doctor) => doctor.name.toLowerCase().contains(name.toLowerCase())).toList();
+    List<Doctor> foundDoctors = doctorsList
+        .where((doctor) => doctor.name.toLowerCase().contains(name.toLowerCase()))
+        .toList();
     if (foundDoctors.isEmpty) {
-      print("No doctor found with the name $name.");
+      print("No doctor found with the name \$name.");
     } else {
-      for (var doctor in foundDoctors) {
-        print("Doctor ID: ${doctor.doctorId}, Name: ${doctor.name}, Specialization: ${doctor.specialization}");
-      }
+      doctorsList.forEach((doctor) {
+      print("Doctor ID: ${doctor.doctorId}, Name: ${doctor.name}, Specialization: ${doctor.specialization}");
+    });
     }
+  }
+}
+
+extension FirstWhereOrNullExtension<E> on List<E> {
+  E? firstWhereOrNull(bool Function(E element) test) {
+    for (var element in this) {
+      if (test(element)) return element;
+    }
+    return null;
   }
 }

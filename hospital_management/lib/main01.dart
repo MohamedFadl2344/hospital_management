@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'database/database.dart';
 import 'models/Patient Management/patient.dart';
+
 void main() {
+  Database.loadPatients();
   while (true) {
     print("\n=== Patient Management System ===");
     print("1. Add New Patient");
@@ -39,45 +42,52 @@ void main() {
 
 void addNewPatient() {
   stdout.write("Enter Patient ID: ");
-  int id = int.parse(stdin.readLineSync()!);
+  int id = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (id == -1) {
+    print("Invalid ID.");
+    return;
+  }
 
   stdout.write("Enter Name: ");
-  String name = stdin.readLineSync()!;
-
+  String? name = stdin.readLineSync();
   stdout.write("Enter Contact Info: ");
-  String contactInfo = stdin.readLineSync()!;
-
+  String? contactInfo = stdin.readLineSync();
   stdout.write("Enter Gender: ");
-  String gender = stdin.readLineSync()!;
-
+  String? gender = stdin.readLineSync();
   stdout.write("Enter Address: ");
-  String address = stdin.readLineSync()!;
-
+  String? address = stdin.readLineSync();
   stdout.write("Enter Blood Type: ");
-  String bloodType = stdin.readLineSync()!;
+  String? bloodType = stdin.readLineSync();
 
-  Patient patient = Patient();
-  patient.addPatient(
-    id: id,
-    name: name,
-    contactInfo: contactInfo,
-    gender: gender,
-    address: address,
-    bloodType: bloodType,
-  );
+  if ([name, contactInfo, gender, address, bloodType].any((element) => element == null || element.isEmpty)) {
+    print("Invalid input. All fields are required.");
+    return;
+  }
 
-  print(" Patient added successfully!");
+  Patient patient = Patient(
+  id: id,
+  name: name ?? "", 
+  contactInfo: contactInfo ?? "", 
+  gender: gender ?? "", 
+  address: address ?? "", 
+  bloodType: bloodType ?? "", 
+  medicalHistory: [],
+  allergies: [],
+);
+
+  Patient.patients.add(patient);
+  Database.savePatients();
+  print("Patient added successfully!");
 }
 
 void searchPatientByName() {
   stdout.write("Enter name to search: ");
-  String name = stdin.readLineSync()!;
+  String name = stdin.readLineSync() ?? '';
   List<Patient> results = Patient.searchPatientsByName(name);
-
   if (results.isEmpty) {
-    print(" No patient found with that name.");
+    print("No patient found with that name.");
   } else {
-    print(" Found ${results.length} patient(s):");
+    print("Found ${results.length} patient(s):");
     for (var patient in results) {
       patient.displayInfo();
       print('--------------------------');
@@ -87,9 +97,13 @@ void searchPatientByName() {
 
 void updatePatient() {
   stdout.write("Enter Patient ID to update: ");
-  int id = int.parse(stdin.readLineSync()!);
-  Patient? patient = Patient.getPatientById(id);
+  int id = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (id == -1) {
+    print("Invalid ID.");
+    return;
+  }
 
+  Patient? patient = Patient.getPatientById(id);
   if (patient == null) {
     print("Patient not found.");
     return;
@@ -107,19 +121,24 @@ void updatePatient() {
   String? bloodType = stdin.readLineSync();
 
   patient.updatePatient(
-    name: name!.isEmpty ? null : name,
-    contactInfo: contactInfo!.isEmpty ? null : contactInfo,
-    gender: gender!.isEmpty ? null : gender,
-    address: address!.isEmpty ? null : address,
-    bloodType: bloodType!.isEmpty ? null : bloodType,
+    name: name?.isNotEmpty == true ? name : null,
+    contactInfo: contactInfo?.isNotEmpty == true ? contactInfo : null,
+    gender: gender?.isNotEmpty == true ? gender : null,
+    address: address?.isNotEmpty == true ? address : null,
+    bloodType: bloodType?.isNotEmpty == true ? bloodType : null,
   );
 
-  print(" Patient updated successfully!");
+  Database.savePatients();
+  print("Patient updated successfully!");
 }
 
 void deletePatient() {
   stdout.write("Enter Patient ID to delete: ");
-  int id = int.parse(stdin.readLineSync()!);
+  int id = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (id == -1) {
+    print("Invalid ID.");
+    return;
+  }
   Patient.deletePatient(id);
-  print(" Patient deleted if exists.");
+  print("Patient deleted if exists.");
 }

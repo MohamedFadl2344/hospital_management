@@ -1,0 +1,22 @@
+[
+    {
+        "appointmentId": "1742329366437",
+        "patientId": "2343",
+        "doctorId": "Ail",
+        "appointmentDate": "2021-03-03T00:00:00.000",
+        "appointmentTime": "10:30",
+        "status": "Cancelled",
+        "notes": "",
+        "reminderSent": false
+    },
+    {
+        "appointmentId": "1742330381002",
+        "patientId": "2345",
+        "doctorId": "Ali Mo",
+        "appointmentDate": "2020-01-01T00:00:00.000",
+        "appointmentTime": "02:30",
+        "status": "Scheduled",
+        "notes": "",
+        "reminderSent": true
+    }
+]

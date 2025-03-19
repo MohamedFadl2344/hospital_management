@@ -1,0 +1,15 @@
+[
+    {
+        "doctorId": "23",
+        "name": "Ali",
+        "specialization": "heart",
+        "contactInfo": "032343245675",
+        "workSchedule": "Mon-Fri, 9 AM - 5 PM",
+        "consultationFee": 500.0,
+        "availabilityStatus": "Available",
+        "operationSchedule": "Monday to Friday, 10:00 AM - 4:00 PM",
+        "experienceYears": 9,
+        "ratings": [],
+        "bio": "A highly experienced cardiologist with over 15 years in the field, specializing in heart diseases and preventive care"
+    }
+]
